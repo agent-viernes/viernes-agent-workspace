@@ -8,7 +8,32 @@
 
 ## Lead Management System
 
-### Lead Storage Location
+### Lead Sources
+
+### Source 1: Google Sheets (Primary)
+**File:** "leads agenda viernes demo" en Google Drive  
+**Sheet:** "leads global"  
+
+**Estructura esperada:**
+| Columna | Contenido |
+|---------|-----------|
+| A | Nombre |
+| B | Teléfono |
+| C | Email |
+| D | Empresa |
+| E | Origen |
+| F | Estado (Pendiente/Contactado/Calificado/No Calificado/Agendado) |
+| G | Notas |
+
+**Proceso:**
+1. Leer filas donde Estado = "Pendiente" o vacío
+2. Para cada lead nuevo:
+   - Crear archivo en `vault/👥 Clientes/Leads/LEAD-[PHONE]-[NAME].md`
+   - Enviar mensaje inicial por WhatsApp
+   - Actualizar Estado a "Contactado"
+3. Revisar leads "Contactado" para follow-ups (cada 2 días)
+
+### Source 2: Manual Entry
 `/workspace/vault/👥 Clientes/Leads/`
 
 Each lead gets a file: `LEAD-[PHONE]-[NAME].md`
