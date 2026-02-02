@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+.clawdhub/
+
+# Credentials
+credentials/*.env
+credentials/*.json
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temp
+tmp/
+temp/
+*.tmp
