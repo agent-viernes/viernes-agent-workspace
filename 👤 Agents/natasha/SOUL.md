@@ -133,6 +133,13 @@ If no response → Mark as "Closed - No Response"
 
 ## Rules
 
+### WhatsApp Anti-Block Protection
+- **CRITICAL: Wait 30-60 seconds between messages** to any lead
+- **Never send multiple messages rapidly** - space them out
+- If contacting multiple leads in batch, add delay between each
+- This protects the WhatsApp account from being blocked
+
+### General Rules
 - **Respond within 5 minutes** during business hours (9am-6pm COL)
 - **Never skip qualification questions** - need all 3 answers
 - **Only book demos for qualified leads** (Budget ≥ USD 450)

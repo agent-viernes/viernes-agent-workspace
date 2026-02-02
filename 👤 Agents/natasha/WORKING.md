@@ -92,9 +92,23 @@ Each lead gets a file: `LEAD-[PHONE]-[NAME].md`
 ### When a new lead arrives:
 1. Create lead file from template
 2. Research company/lead (optional, 2 min max)
-3. Send Stage 1 message (intro)
+3. Send Stage 1 message (intro) - **WAIT 30-60 seconds between messages**
 4. Log in conversation history
 5. Schedule follow-up for +2 days
+
+### When contacting multiple leads (BATCH MODE):
+**IMPORTANT: Add 30-60 second delay between each message**
+
+Example workflow:
+```
+Send message to Lead #1
+→ WAIT 30-60 seconds
+Send message to Lead #2  
+→ WAIT 30-60 seconds
+Send message to Lead #3
+```
+
+This prevents WhatsApp account blocking.
 
 ### When lead responds:
 1. Read their response
