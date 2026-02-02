@@ -1,0 +1,2687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Mission Control | Viernes AI</title>
+    <style>
+        /* ========================================
+           CSS VARIABLES & THEMES
+           ======================================== */
+        :root {
+            /* Light Mode - Editorial Newspaper Style */
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: #ffffff;
+            --bg-sidebar: #1a1a1a;
+            --text-primary: #2d2d2d;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --text-sidebar: #e8e6e3;
+            --border-light: #e0ddd8;
+            --border-medium: #d0ccc5;
+            --accent-gold: #c9a227;
+            --accent-blue: #2c5282;
+            --accent-red: #c53030;
+            --accent-green: #276749;
+            --accent-amber: #d69e2e;
+            --status-idle: #48bb78;
+            --status-busy: #ecc94b;
+            --status-blocked: #f56565;
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.1);
+            --font-serif: 'Georgia', 'Times New Roman', serif;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --radius: 4px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --bg-sidebar: #0d0d0d;
+            --text-primary: #e8e6e3;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b6b6b;
+            --text-sidebar: #e8e6e3;
+            --border-light: #3d3d3d;
+            --border-medium: #4d4d4d;
+            --accent-gold: #d4af37;
+            --accent-blue: #63b3ed;
+            --accent-red: #fc8181;
+            --accent-green: #68d391;
+            --accent-amber: #f6e05e;
+            --status-idle: #48bb78;
+            --status-busy: #ecc94b;
+            --status-blocked: #f56565;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        /* ========================================
+           BASE STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ========================================
+           LAYOUT
+           ======================================== */
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ========================================
+           HEADER / MASTHEAD
+           ======================================== */
+        .masthead {
+            background: var(--bg-card);
+            border-bottom: 3px double var(--border-medium);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            grid-column: 1 / -1;
+        }
+
+        .masthead-title {
+            font-family: var(--font-serif);
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .masthead-subtitle {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            font-family: var(--font-sans);
+            font-weight: 500;
+        }
+
+        .masthead-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .timestamp {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .refresh-btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: opacity 0.2s ease;
+        }
+
+        .refresh-btn:hover {
+            opacity: 0.9;
+        }
+
+        .refresh-btn.spinning .refresh-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========================================
+           SIDEBAR - ACTIVITY FEED
+           ======================================== */
+        .sidebar {
+            background: var(--bg-sidebar);
+            color: var(--text-sidebar);
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+
+        .sidebar-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-title {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-day {
+            margin-bottom: 1.5rem;
+        }
+
+        .activity-date {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-gold);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .activity-item {
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius);
+            border-left: 3px solid var(--accent-gold);
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .activity-time {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-text {
+            line-height: 1.5;
+        }
+
+        .activity-agent {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        /* ========================================
+           MAIN CONTENT
+           ======================================== */
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+
+        /* ========================================
+           AGENT STATUS CARDS
+           ======================================== */
+        .agents-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1.25rem;
+            border-bottom: 2px solid var(--border-medium);
+            padding-bottom: 0.75rem;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .agent-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .agent-card.status-idle::before { background: var(--status-idle); }
+        .agent-card.status-busy::before { background: var(--status-busy); }
+        .agent-card.status-blocked::before { background: var(--status-blocked); }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .agent-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+        }
+
+        .agent-info {
+            flex: 1;
+        }
+
+        .agent-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .agent-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .agent-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 100px;
+            font-weight: 600;
+        }
+
+        .agent-status-badge.status-idle {
+            background: rgba(72, 187, 120, 0.15);
+            color: var(--status-idle);
+        }
+
+        .agent-status-badge.status-busy {
+            background: rgba(236, 201, 75, 0.15);
+            color: var(--status-busy);
+        }
+
+        .agent-status-badge.status-blocked {
+            background: rgba(245, 101, 101, 0.15);
+            color: var(--status-blocked);
+        }
+
+        .agent-current-task {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .agent-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .agent-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* ========================================
+           KANBAN BOARD
+           ======================================== */
+        .kanban-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        @media (max-width: 1400px) {
+            .kanban-board {
+                grid-template-columns: repeat(4, minmax(280px, 1fr));
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .kanban-board {
+                grid-template-columns: repeat(3, minmax(280px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kanban-board {
+                grid-template-columns: repeat(2, minmax(260px, 1fr));
+            }
+        }
+
+        .kanban-column {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kanban-header {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kanban-title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kanban-count {
+            background: var(--bg-card);
+            padding: 0.15rem 0.5rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+
+        .kanban-column.backlog .kanban-title { color: var(--text-muted); }
+        .kanban-column.inbox .kanban-title { color: var(--text-secondary); }
+        .kanban-column.assigned .kanban-title { color: var(--accent-blue); }
+        .kanban-column.in-progress .kanban-title { color: var(--accent-amber); }
+        .kanban-column.review .kanban-title { color: var(--accent-gold); }
+        .kanban-column.blocked .kanban-title { color: var(--accent-red); }
+        .kanban-column.done .kanban-title { color: var(--accent-green); }
+
+        .kanban-tasks {
+            padding: 0.75rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow-y: auto;
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .task-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .task-card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            transform: rotate(2deg);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .kanban-tasks.drag-over {
+            background: var(--accent-gold);
+            background-opacity: 0.1;
+            border: 2px dashed var(--accent-gold);
+            border-radius: var(--radius);
+        }
+
+        .kanban-column {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.2s ease;
+        }
+
+        .kanban-column.drag-over {
+            background: rgba(201, 162, 39, 0.1);
+            box-shadow: inset 0 0 20px rgba(201, 162, 39, 0.1);
+        }
+
+        /* Filter Bar Styles */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            min-width: 140px;
+            flex: 1;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .filter-clear {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .filter-clear:hover {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+        }
+
+        @media (max-width: 768px) {
+            .filter-bar {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+        }
+
+        /* View Toggle Styles */
+        .section-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .view-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-toggle:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent-gold);
+        }
+
+        /* List View Styles */
+        .list-view {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .task-table th,
+        .task-table td {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .task-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .task-table tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .task-table td {
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge.backlog { background: var(--bg-secondary); color: var(--text-muted); }
+        .status-badge.inbox { background: var(--bg-secondary); color: var(--text-secondary); }
+        .status-badge.assigned { background: #dbeafe; color: var(--accent-blue); }
+        .status-badge.in-progress { background: #fef3c7; color: var(--accent-amber); }
+        .status-badge.review { background: #fef9c3; color: var(--accent-gold); }
+        .status-badge.blocked { background: #fee2e2; color: var(--accent-red); }
+        .status-badge.done { background: #d1fae5; color: var(--accent-green); }
+
+        /* Deadline Styles */
+        .task-deadline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+
+        .task-deadline.due-soon {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .task-deadline.overdue {
+            background: #fee2e2;
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .task-deadline.on-track {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .task-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .task-tag {
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        .task-tag.priority-high {
+            background: rgba(197, 48, 48, 0.1);
+            color: var(--accent-red);
+        }
+
+        .task-tag.priority-medium {
+            background: rgba(214, 158, 46, 0.1);
+            color: var(--accent-amber);
+        }
+
+        .task-tag.priority-low {
+            background: rgba(39, 103, 73, 0.1);
+            color: var(--accent-green);
+        }
+
+        .task-assignee {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        /* ========================================
+           DOCUMENT PANEL
+           ======================================== */
+        .documents-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .document-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .document-card:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-primary);
+        }
+
+        .document-icon {
+            font-size: 1.5rem;
+        }
+
+        .document-info {
+            flex: 1;
+        }
+
+        .document-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .document-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ========================================
+           AGENT ADMIN MODULE STYLES
+           ======================================== */
+        .top-nav {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-light);
+            margin: -2rem -2rem 1.5rem -2rem;
+            padding: 0.75rem 2rem;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            background: var(--accent-gold);
+            color: white;
+            font-weight: 500;
+        }
+
+        .agent-admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 200px);
+        }
+
+        .agent-list-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            overflow-y: auto;
+        }
+
+        .agent-list-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .agent-list-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .agent-list-item.active {
+            background: rgba(201, 162, 39, 0.1);
+            border-left: 3px solid var(--accent-gold);
+        }
+
+        .agent-avatar-sm {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            border: 2px solid var(--border-light);
+        }
+
+        .agent-list-info {
+            flex: 1;
+        }
+
+        .agent-list-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .agent-list-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .agent-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .agent-status-dot.active { background: var(--status-idle); }
+        .agent-status-dot.configured { background: var(--accent-amber); }
+        .agent-status-dot.inactive { background: var(--status-blocked); }
+
+        .agent-config-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            overflow-y: auto;
+        }
+
+        .agent-config-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-secondary);
+        }
+
+        .agent-config-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .agent-avatar-lg {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            border: 3px solid var(--accent-gold);
+            box-shadow: var(--shadow);
+        }
+
+        .agent-config-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .agent-config-role {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .agent-config-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .config-tab {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .config-tab:hover {
+            border-color: var(--accent-gold);
+            color: var(--text-primary);
+        }
+
+        .config-tab.active {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: white;
+        }
+
+        .agent-config-content {
+            padding: 1.5rem;
+        }
+
+        .config-section {
+            margin-bottom: 2rem;
+        }
+
+        .config-section h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .config-item {
+            background: var(--bg-secondary);
+            padding: 0.875rem 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+        }
+
+        .config-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .config-item value {
+            display: block;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .config-tag {
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .config-tag.skill {
+            background: rgba(201, 162, 39, 0.1);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .file-path {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            word-break: break-all;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.25rem;
+            border-radius: var(--radius);
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .code-block.language-json {
+            color: #7ee787;
+        }
+
+        /* ========================================
+           LOADING & ERROR STATES
+           ======================================== */
+        .loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-light);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.75rem;
+        }
+
+        .error-state {
+            background: rgba(197, 48, 48, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: var(--radius);
+            padding: 1rem;
+            color: var(--accent-red);
+            font-size: 0.9rem;
+        }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-height: none;
+                order: 2;
+            }
+
+            .main-content {
+                max-height: none;
+                order: 1;
+            }
+
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .masthead {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .masthead-title {
+                font-size: 1.25rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           SCROLLBAR STYLING
+           ======================================== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ========================================
+           UTILITY CLASSES
+           ======================================== */
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Masthead Header -->
+        <header class="masthead">
+            <div class="masthead-title">
+                🤖 Mission Control
+                <span class="masthead-subtitle">Viernes AI Dashboard</span>
+            </div>
+            <div class="masthead-controls">
+                <span class="timestamp" id="current-time">--:-- UTC</span>
+                <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">
+                    🌙 Dark
+                </button>
+                <button class="refresh-btn" id="refresh-btn">
+                    <span class="refresh-icon">↻</span>
+                    Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <button class="nav-tab active" id="nav-task-board" onclick="showTaskBoard()">
+                <span>📋</span> Task Board
+            </button>
+            <button class="nav-tab" id="nav-agent-admin" onclick="showAgentAdmin()">
+                <span>👤</span> Agent Admin
+            </button>
+        </nav>
+
+        <!-- Activity Feed Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 class="sidebar-title">
+                    <span>📡</span>
+                    Activity Feed
+                </h2>
+            </div>
+            <div class="activity-feed" id="activity-feed">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    Loading activity...
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Task Board Section -->
+            <div id="task-board-section">
+                <!-- Agent Status Cards -->
+                <section class="agents-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>👤</span>
+                        Agent Status
+                    </h2>
+                    <span class="section-meta" id="agent-count">-- agents active</span>
+                </div>
+                <div class="agents-grid" id="agents-grid">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        Loading agents...
+                    </div>
+                </div>
+            </section>
+
+            <!-- Kanban Task Board -->
+            <section class="kanban-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>📋</span>
+                        Task Board
+                    </h2>
+                    <div class="section-controls">
+                        <button class="view-toggle" id="view-toggle" onclick="toggleView()">
+                            <span id="view-icon">☰</span>
+                            <span id="view-label">List View</span>
+                        </button>
+                        <span class="section-meta" id="task-count">-- tasks total</span>
+                    </div>
+                </div>
+                
+                <!-- Filter Bar -->
+                <div class="filter-bar" id="filter-bar">
+                    <div class="filter-group">
+                        <label>🔍 Search</label>
+                        <input type="text" id="filter-search" placeholder="Search tasks..." class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>👤 Agent</label>
+                        <select id="filter-agent" class="filter-select">
+                            <option value="">All Agents</option>
+                            <option value="Jarvis">Jarvis</option>
+                            <option value="Shuri">Shuri</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Fury">Fury</option>
+                            <option value="Vision">Vision</option>
+                            <option value="Loki">Loki</option>
+                            <option value="Quill">Quill</option>
+                            <option value="Wanda">Wanda</option>
+                            <option value="Pepper">Pepper</option>
+                            <option value="Wong">Wong</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>🚩 Priority</label>
+                        <select id="filter-priority" class="filter-select">
+                            <option value="">All Priorities</option>
+                            <option value="high">🔴 High</option>
+                            <option value="medium">🟡 Medium</option>
+                            <option value="low">🟢 Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>📊 Status</label>
+                        <select id="filter-status" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="backlog">📋 Backlog</option>
+                            <option value="inbox">📥 Inbox</option>
+                            <option value="assigned">📝 Assigned</option>
+                            <option value="in-progress">🔄 In Progress</option>
+                            <option value="review">👀 Review</option>
+                            <option value="blocked">🚫 Blocked</option>
+                            <option value="done">✅ Done</option>
+                        </select>
+                    </div>
+                    <button class="filter-clear" id="filter-clear" onclick="clearFilters()">❌ Clear</button>
+                </div>
+                
+                <!-- Kanban View -->
+                <div class="kanban-board" id="kanban-board">
+                    <!-- Columns will be populated by JS -->
+                </div>
+                
+                <!-- List View (hidden by default) -->
+                <div class="list-view" id="list-view" style="display: none;">
+                    <table class="task-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Assignee</th>
+                                <th>Deadline</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list-view-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Documents Panel -->
+            <section class="documents-section">
+                <div class="section-header" style="border: none; margin-bottom: 0; padding-bottom: 0;">
+                    <h2 class="section-title">
+                        <span>📄</span>
+                        Documents & Deliverables
+                    </h2>
+                    <span class="section-meta">Quick access to project files</span>
+                </div>
+                <div class="documents-grid" id="documents-grid">
+                    <div class="document-card" onclick="openFile('README.md')">
+                        <span class="document-icon">📘</span>
+                        <div class="document-info">
+                            <div class="document-name">README.md</div>
+                            <div class="document-meta">Mission Control Overview</div>
+                        </div>
+                    </div>
+                    <div class="document-card" onclick="openFile('📊 Daily Standup Template.md')">
+                        <span class="document-icon">📋</span>
+                        <div class="document-info">
+                            <div class="document-name">Daily Standup</div>
+                            <div class="document-meta">Template</div>
+                        </div>
+                    </div>
+                    <div class="document-card" onclick="openAgentDocs()">
+                        <span class="document-icon">👥</span>
+                        <div class="document-info">
+                            <div class="document-name">Agent Docs</div>
+                            <div class="document-meta">SOUL & WORKING files</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            </div><!-- End Task Board Section -->
+            
+            <!-- Agent Admin Section (hidden by default) -->
+            <div id="agent-admin-section" style="display: none;">
+                <div class="agent-admin-container">
+                    <!-- Agent List Panel -->
+                    <aside class="agent-list-panel">
+                        <div class="agent-list-header">
+                            <span>👥 Agents</span>
+                            <span class="kanban-count" id="admin-agent-count">4</span>
+                        </div>
+                        <div id="agent-list-panel">
+                            <!-- Populated by JS -->
+                        </div>
+                    </aside>
+                    
+                    <!-- Agent Config Panel -->
+                    <div class="agent-config-panel" id="agent-config-panel">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION & STATE
+        // ========================================
+        const CONFIG = {
+            basePath: '/root/.openclaw/workspace',
+            agents: ['jarvis', 'friday', 'shuri'],
+            taskFiles: {
+                inbox: '📋 Tasks/inbox.md',
+                assigned: '📋 Tasks/assigned.md',
+                'in-progress': '📋 Tasks/in-progress.md',
+                review: '📋 Tasks/review.md',
+                done: '📋 Tasks/done.md'
+            },
+            activityFile: '📊 Activity Feed.md'
+        };
+
+        let appState = {
+            agents: [],
+            tasks: {},
+            activities: [],
+            darkMode: false
+        };
+
+        // ========================================
+        // UTILITY FUNCTIONS
+        // ========================================
+        
+        // Parse markdown content
+        function parseMarkdown(content) {
+            const lines = content.split('\n');
+            const result = {
+                title: '',
+                sections: [],
+                tasks: [],
+                activities: []
+            };
+
+            let currentSection = null;
+            let inTask = false;
+            let currentTask = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                // Title (H1)
+                if (line.startsWith('# ') && !result.title) {
+                    result.title = line.replace('# ', '');
+                    continue;
+                }
+
+                // Section headers
+                if (line.startsWith('## ')) {
+                    currentSection = {
+                        title: line.replace('## ', ''),
+                        content: []
+                    };
+                    result.sections.push(currentSection);
+                    continue;
+                }
+
+                // Subsection (H3) - potential activity or task
+                if (line.startsWith('### ')) {
+                    const title = line.replace('### ', '');
+                    
+                    // Check if it's a task
+                    if (title.includes('TASK-')) {
+                        if (currentTask) {
+                            result.tasks.push(currentTask);
+                        }
+                        currentTask = {
+                            id: title.match(/TASK-(\d+|[A-Z\-]+)/)?.[0] || 'TASK-?',
+                            title: title.replace(/TASK-[^:]+:/, '').trim(),
+                            description: '',
+                            priority: 'medium',
+                            assignee: null,
+                            created: null,
+                            deadline: null,
+                            status: 'inbox'
+                        };
+                        inTask = true;
+                    } else if (title.match(/\d{2}:\d{2}/)) {
+                        // Activity entry
+                        const timeMatch = title.match(/(\d{2}:\d{2})/);
+                        const activity = {
+                            time: timeMatch ? timeMatch[1] : '',
+                            title: title,
+                            items: [],
+                            raw: line
+                        };
+                        
+                        // Collect activity items
+                        let j = i + 1;
+                        while (j < lines.length && lines[j].trim().startsWith('-')) {
+                            activity.items.push(lines[j].trim().replace(/^- /, ''));
+                            j++;
+                        }
+                        
+                        result.activities.push(activity);
+                        i = j - 1;
+                    }
+                    
+                    if (currentSection) {
+                        currentSection.content.push(line);
+                    }
+                    continue;
+                }
+
+                // Parse task details
+                if (inTask && currentTask && line.startsWith('**')) {
+                    const match = line.match(/\*\*(\w+):\*\*\s*(.+)/);
+                    if (match) {
+                        const [, key, value] = match;
+                        if (key === 'Prioridad') {
+                            if (value.includes('Alta')) currentTask.priority = 'high';
+                            else if (value.includes('Media')) currentTask.priority = 'medium';
+                            else if (value.includes('Baja')) currentTask.priority = 'low';
+                        } else if (key === 'Creado') {
+                            currentTask.created = value;
+                        } else if (key === 'Deadline') {
+                            currentTask.deadline = value;
+                        } else if (key === 'Solicitado por') {
+                            currentTask.requester = value;
+                        }
+                    }
+                }
+
+                // Check for task list items in task description
+                if (inTask && currentTask && line.startsWith('- [')) {
+                    if (!currentTask.criteria) currentTask.criteria = [];
+                    currentTask.criteria.push(line.replace(/^- \[.\] /, ''));
+                }
+
+                if (currentSection && !inTask) {
+                    currentSection.content.push(line);
+                }
+            }
+
+            // Don't forget the last task
+            if (currentTask) {
+                result.tasks.push(currentTask);
+            }
+
+            return result;
+        }
+
+        // Parse WORKING.md file
+        function parseWorkingFile(content, agentName) {
+            const lines = content.split('\n');
+            const agent = {
+                name: agentName.charAt(0).toUpperCase() + agentName.slice(1),
+                role: getAgentRole(agentName),
+                status: 'idle',
+                statusText: 'Unknown',
+                currentTask: 'No task assigned',
+                blockedBy: null,
+                recentActivity: [],
+                avatar: getAgentAvatar(agentName)
+            };
+
+            let inRecentActivity = false;
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+
+                // Current Task
+                if (trimmed.startsWith('## Current Task')) {
+                    inRecentActivity = false;
+                    continue;
+                }
+                if (!trimmed.startsWith('#') && !trimmed.startsWith('-') && 
+                    !trimmed.startsWith('**') && trimmed && 
+                    agent.currentTask === 'No task assigned' && 
+                    !trimmed.includes('Status') && !trimmed.includes('Next Steps')) {
+                    agent.currentTask = trimmed;
+                }
+
+                // Status
+                if (trimmed.startsWith('## Status')) {
+                    inRecentActivity = false;
+                    continue;
+                }
+                if (trimmed.startsWith('##')) {
+                    inRecentActivity = false;
+                }
+                if (!trimmed.startsWith('#') && !trimmed.startsWith('-') && trimmed &&
+                    (trimmed.includes('🟢') || trimmed.includes('🟡') || trimmed.includes('🔴'))) {
+                    if (trimmed.includes('🟢')) {
+                        agent.status = 'idle';
+                        agent.statusText = trimmed.replace('🟢', '').trim() || 'Idle - Ready';
+                    } else if (trimmed.includes('🟡')) {
+                        agent.status = 'busy';
+                        agent.statusText = trimmed.replace('🟡', '').trim() || 'Busy';
+                    } else if (trimmed.includes('🔴')) {
+                        agent.status = 'blocked';
+                        agent.statusText = trimmed.replace('🔴', '').trim() || 'Blocked';
+                    }
+                    // Role detection from status text
+                    if (trimmed.toLowerCase().includes('developer')) agent.role = 'Developer';
+                    else if (trimmed.toLowerCase().includes('analyst')) agent.role = 'Analyst';
+                    else if (trimmed.toLowerCase().includes('lead')) agent.role = 'Squad Lead';
+                }
+
+                // Blocked By
+                if (trimmed.startsWith('## Blocked By')) {
+                    inRecentActivity = false;
+                    continue;
+                }
+                if (!trimmed.startsWith('#') && trimmed.toLowerCase() !== 'none' && 
+                    agent.blockedBy === null && !trimmed.startsWith('-')) {
+                    // Only set blockedBy if it looks like a blocker (not status text)
+                    if (!trimmed.includes('🟢') && !trimmed.includes('🟡') && !trimmed.includes('🔴')) {
+                        agent.blockedBy = trimmed;
+                    }
+                }
+
+                // Recent Activity
+                if (trimmed.startsWith('## Recent Activity')) {
+                    inRecentActivity = true;
+                    continue;
+                }
+                if (inRecentActivity && trimmed.startsWith('-')) {
+                    agent.recentActivity.push(trimmed.replace(/^- /, ''));
+                }
+            }
+
+            // Clean up status text
+            if (agent.statusText.includes('🟢')) agent.statusText = agent.statusText.replace('🟢', '').trim();
+            if (agent.statusText.includes('🟡')) agent.statusText = agent.statusText.replace('🟡', '').trim();
+            if (agent.statusText.includes('🔴')) agent.statusText = agent.statusText.replace('🔴', '').trim();
+
+            return agent;
+        }
+
+        // Get avatar emoji for agent
+        function getAgentAvatar(name) {
+            const avatars = {
+                jarvis: '🎩',
+                friday: '💻',
+                shuri: '🔬',
+                default: '🤖'
+            };
+            return avatars[name.toLowerCase()] || avatars.default;
+        }
+
+        // Get role for agent
+        function getAgentRole(name) {
+            const roles = {
+                jarvis: 'Squad Lead',
+                friday: 'Developer',
+                shuri: 'Product Analyst',
+                default: 'Agent'
+            };
+            return roles[name.toLowerCase()] || roles.default;
+        }
+
+        // Get role-specific color
+        function getRoleColor(role) {
+            const colors = {
+                'Squad Lead': '#c9a227',
+                'Developer': '#2c5282',
+                'Analyst': '#276749',
+                'default': '#666666'
+            };
+            return colors[role] || colors.default;
+        }
+
+        // ========================================
+        // DATA FETCHING (SIMULATED - reads from embedded data)
+        // ========================================
+        
+        // Since we can't directly read files from browser, we embed the initial data
+        // and provide instructions for refreshing via a backend or manual refresh
+        
+        const INITIAL_DATA = {
+            activities: `### 16:00 UTC - System Initialization
+- **Jarvis**: Squad Lead agent initialized
+- **Shuri**: Product Analyst agent initialized  
+- **Friday**: Developer agent initialized
+- **Viernes**: Mission Control system created`,
+
+            agents: {
+                jarvis: `## Current Task
+No active task. Monitoring Mission Control.
+
+## Status
+🟢 Idle - Available for coordination
+
+## Next Steps
+1. Check inbox for new tasks
+2. Review in-progress tasks
+3. Look for blockers to resolve
+
+## Blocked By
+None
+
+## Recent Activity
+- 2026-02-01: System initialized`,
+
+                friday: `## Current Task
+No active task. Available for development work.
+
+## Status
+🟢 Idle - Ready for coding tasks
+
+## Next Steps
+1. Check assigned development tasks
+2. Review codebase if needed
+3. Ask for clarification on requirements
+
+## Blocked By
+None
+
+## Recent Activity
+- 2026-02-01: Agent initialized`,
+
+                shuri: `## Current Task
+No active task. Waiting for assignments.
+
+## Status
+🟢 Idle - Ready for testing tasks
+
+## Next Steps
+1. Check assigned tasks
+2. Look for @mentions
+3. Review any products/features to test
+
+## Blocked By
+None
+
+## Recent Activity
+- 2026-02-01: Agent initialized`
+            },
+
+            tasks: {
+                inbox: '# No tasks in inbox',
+                assigned: '# No assigned tasks',
+                'in-progress': '# No tasks in progress',
+                review: '# No tasks in review',
+                done: '# No completed tasks'
+            }
+        };
+
+        // Try to load data from localStorage (for persistence)
+        function loadStoredData() {
+            try {
+                const stored = localStorage.getItem('missionControlData');
+                if (stored) {
+                    return JSON.parse(stored);
+                }
+            } catch (e) {
+                console.log('No stored data found');
+            }
+            return null;
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('missionControlData', JSON.stringify({
+                    agents: appState.agents,
+                    activities: appState.activities,
+                    tasks: appState.tasks,
+                    lastUpdate: new Date().toISOString()
+                }));
+            } catch (e) {
+                console.error('Failed to save data:', e);
+            }
+        }
+
+        // ========================================
+        // RENDER FUNCTIONS
+        // ========================================
+
+        function renderActivityFeed() {
+            const container = document.getElementById('activity-feed');
+            
+            if (!appState.activities || appState.activities.length === 0) {
+                container.innerHTML = `
+                    <div class="activity-day">
+                        <div class="activity-date">${new Date().toISOString().split('T')[0]}</div>
+                        <div class="activity-item">
+                            <div class="activity-time">--:--</div>
+                            <div class="activity-text">No recent activity recorded.</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Group by date (simplified)
+            html += `<div class="activity-day">`;
+            html += `<div class="activity-date">${today}</div>`;
+            
+            appState.activities.forEach(activity => {
+                html += `
+                    <div class="activity-item fade-in">
+                        <div class="activity-time">${activity.time || '--:--'} UTC</div>
+                        <div class="activity-text">
+                            ${activity.items.map(item => {
+                                // Highlight agent names
+                                return item.replace(/\*\*(\w+)\*\*/g, '<span class="activity-agent">$1</span>');
+                            }).join('<br>')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderAgents() {
+            const container = document.getElementById('agents-grid');
+            const countEl = document.getElementById('agent-count');
+            
+            if (!appState.agents || appState.agents.length === 0) {
+                container.innerHTML = '<div class="empty-state">No agents found</div>';
+                countEl.textContent = '0 agents';
+                return;
+            }
+
+            countEl.textContent = `${appState.agents.length} agents active`;
+
+            const html = appState.agents.map((agent, index) => `
+                <div class="agent-card status-${agent.status} fade-in" style="animation-delay: ${index * 0.1}s">
+                    <div class="agent-header">
+                        <div class="agent-avatar" style="border-color: ${getRoleColor(agent.role)}">
+                            ${agent.avatar}
+                        </div>
+                        <div class="agent-info">
+                            <div class="agent-name">${agent.name}</div>
+                            <div class="agent-role">${agent.role}</div>
+                        </div>
+                    </div>
+                    <div class="agent-status-badge status-${agent.status}">
+                        <span>${agent.status === 'idle' ? '🟢' : agent.status === 'busy' ? '🟡' : '🔴'}</span>
+                        ${agent.statusText}
+                    </div>
+                    <div class="agent-current-task">
+                        ${agent.currentTask}
+                    </div>
+                    <div class="agent-meta">
+                        ${agent.blockedBy && agent.blockedBy !== 'None' ? 
+                            `<span class="agent-meta-item">⚠️ Blocked: ${agent.blockedBy}</span>` : 
+                            '<span class="agent-meta-item">✅ No blockers</span>'}
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderKanban() {
+            const container = document.getElementById('kanban-board');
+            const countEl = document.getElementById('task-count');
+            
+            const columns = [
+                { id: 'backlog', name: 'Backlog', icon: '📋' },
+                { id: 'inbox', name: 'Inbox', icon: '📥' },
+                { id: 'assigned', name: 'Assigned', icon: '📝' },
+                { id: 'in-progress', name: 'In Progress', icon: '🔄' },
+                { id: 'review', name: 'Review', icon: '👀' },
+                { id: 'blocked', name: 'Blocked', icon: '🚫' },
+                { id: 'done', name: 'Done', icon: '✅' }
+            ];
+
+            let totalTasks = 0;
+
+            const html = columns.map(col => {
+                const tasks = appState.tasks[col.id] || [];
+                totalTasks += tasks.length;
+
+                return `
+                    <div class="kanban-column ${col.id}" data-status="${col.id}">
+                        <div class="kanban-header">
+                            <span class="kanban-title">
+                                <span>${col.icon}</span>
+                                ${col.name}
+                            </span>
+                            <span class="kanban-count">${tasks.length}</span>
+                        </div>
+                        <div class="kanban-tasks">
+                            ${tasks.length === 0 ? 
+                                `<div class="empty-state" data-status="${col.id}">No tasks</div>` :
+                                tasks.map((task, idx) => `
+                                    <div class="task-card fade-in" draggable="true" data-task-id="${task.id}" data-status="${col.id}" style="animation-delay: ${idx * 0.05}s">
+                                        <div class="task-id">${task.id}</div>
+                                        <div class="task-title">${task.title}</div>
+                                        <div class="task-meta">
+                                            ${task.priority ? `<span class="task-tag priority-${task.priority}">${task.priority}</span>` : ''}
+                                            ${task.assignee ? `<span class="task-assignee">👤 ${task.assignee}</span>` : ''}
+                                        </div>
+                                        ${task.deadline ? `<div class="task-deadline ${getDeadlineClass(task.deadline)}">📅 ${formatDeadline(task.deadline)}</div>` : ''}
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+            countEl.textContent = `${totalTasks} tasks total`;
+        }
+
+        // ========================================
+        // INITIALIZATION & EVENT HANDLERS
+        // ========================================
+
+        function initData() {
+            // Parse agent data
+            appState.agents = Object.entries(INITIAL_DATA.agents).map(([name, content]) => {
+                return parseWorkingFile(content, name);
+            });
+
+            // Parse activities
+            const activityLines = INITIAL_DATA.activities.split('\n');
+            const activities = [];
+            let currentActivity = null;
+
+            for (const line of activityLines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('###')) {
+                    if (currentActivity) activities.push(currentActivity);
+                    const timeMatch = trimmed.match(/(\d{2}:\d{2})/);
+                    currentActivity = {
+                        time: timeMatch ? timeMatch[1] : '',
+                        title: trimmed.replace('### ', ''),
+                        items: []
+                    };
+                } else if (trimmed.startsWith('-') && currentActivity) {
+                    currentActivity.items.push(trimmed.replace(/^- /, ''));
+                }
+            }
+            if (currentActivity) activities.push(currentActivity);
+            appState.activities = activities;
+
+            // Parse tasks (with sample data for demo)
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            appState.tasks = {
+                backlog: [
+                    { id: 'TASK-004', title: 'Integrar con API de WhatsApp Business', priority: 'medium', assignee: null, status: 'backlog', deadline: nextWeek.toISOString().split('T')[0] },
+                    { id: 'TASK-005', title: 'Crear documentación técnica', priority: 'low', assignee: null, status: 'backlog' }
+                ],
+                inbox: [
+                    { id: 'TASK-001', title: 'Crear landing page para Viernes.ai', priority: 'high', assignee: null, status: 'inbox', deadline: tomorrow.toISOString().split('T')[0] }
+                ],
+                assigned: [
+                    { id: 'TASK-002', title: 'Investigar competidores de chatbots', priority: 'medium', assignee: 'Fury', status: 'assigned', deadline: nextWeek.toISOString().split('T')[0] }
+                ],
+                'in-progress': [
+                    { id: 'TASK-003', title: 'Diseñar dashboard de Mission Control', priority: 'high', assignee: 'Friday', status: 'in-progress', deadline: today.toISOString().split('T')[0] }
+                ],
+                review: [],
+                blocked: [
+                    { id: 'TASK-006', title: 'Esperando aprobación de presupuesto', priority: 'high', assignee: 'Jarvis', status: 'blocked', blockedBy: 'Jefe', deadline: yesterday.toISOString().split('T')[0] }
+                ],
+                done: [
+                    { id: 'TASK-000', title: 'Setup inicial del proyecto', priority: 'high', assignee: 'Viernes', status: 'done' }
+                ]
+            };
+
+            // Try to load from stored data
+            const stored = loadStoredData();
+            if (stored) {
+                if (stored.agents) appState.agents = stored.agents;
+                if (stored.activities) appState.activities = stored.activities;
+                if (stored.tasks) appState.tasks = stored.tasks;
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const utcString = now.toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+            document.getElementById('current-time').textContent = utcString;
+        }
+
+        function toggleTheme() {
+            appState.darkMode = !appState.darkMode;
+            document.body.setAttribute('data-theme', appState.darkMode ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = appState.darkMode ? '☀️ Light' : '🌙 Dark';
+            localStorage.setItem('missionControlTheme', appState.darkMode ? 'dark' : 'light');
+        }
+
+        function refreshData() {
+            const btn = document.getElementById('refresh-btn');
+            btn.classList.add('spinning');
+            btn.disabled = true;
+
+            // Simulate refresh
+            setTimeout(() => {
+                initData();
+                renderActivityFeed();
+                renderAgents();
+                renderKanban();
+                
+                // Re-init drag and drop after rendering
+                setTimeout(initDragAndDrop, 100);
+                
+                btn.classList.remove('spinning');
+                btn.disabled = false;
+                
+                // Show refresh notification
+                const timestamp = document.getElementById('current-time');
+                timestamp.style.color = 'var(--accent-green)';
+                setTimeout(() => {
+                    timestamp.style.color = '';
+                }, 1000);
+            }, 800);
+        }
+
+        function openFile(filename) {
+            alert(`Opening ${filename}...\n\nIn a full implementation, this would open the file in your default editor or viewer.`);
+        }
+
+        function openAgentDocs() {
+            alert('Opening Agent Documentation...\n\nThis would open the agents folder containing all SOUL.md and WORKING.md files.');
+        }
+
+        // ========================================
+        // DRAG & DROP FUNCTIONALITY
+        // ========================================
+
+        let draggedTask = null;
+        let draggedTaskColumn = null;
+
+        function initDragAndDrop() {
+            const taskCards = document.querySelectorAll('.task-card');
+            const columns = document.querySelectorAll('.kanban-column');
+
+            taskCards.forEach(card => {
+                card.draggable = true;
+                
+                card.addEventListener('dragstart', (e) => {
+                    draggedTask = card;
+                    draggedTaskColumn = card.closest('.kanban-column').dataset.status;
+                    card.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', card.querySelector('.task-id').textContent);
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    draggedTask = null;
+                    draggedTaskColumn = null;
+                    
+                    // Remove drag-over from all columns
+                    columns.forEach(col => col.classList.remove('drag-over'));
+                });
+            });
+
+            columns.forEach(column => {
+                column.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    column.classList.add('drag-over');
+                });
+
+                column.addEventListener('dragleave', (e) => {
+                    if (!column.contains(e.relatedTarget)) {
+                        column.classList.remove('drag-over');
+                    }
+                });
+
+                column.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
+                    
+                    if (draggedTask) {
+                        const newStatus = column.dataset.status;
+                        const taskId = draggedTask.querySelector('.task-id').textContent;
+                        const oldStatus = draggedTaskColumn;
+                        
+                        if (oldStatus !== newStatus) {
+                            // Move task in data
+                            const task = appState.tasks[oldStatus].find(t => t.id === taskId);
+                            if (task) {
+                                appState.tasks[oldStatus] = appState.tasks[oldStatus].filter(t => t.id !== taskId);
+                                task.status = newStatus;
+                                appState.tasks[newStatus].push(task);
+                                
+                                // Add activity
+                                const now = new Date();
+                                const time = now.toTimeString().slice(0, 5);
+                                appState.activities.unshift({
+                                    time: time,
+                                    title: 'Task Moved',
+                                    items: [`${taskId} moved from ${oldStatus} to ${newStatus}`]
+                                });
+                                
+                                // Re-render
+                                renderKanban();
+                                renderActivityFeed();
+                                saveData();
+                                
+                                // Re-init drag and drop
+                                setTimeout(initDragAndDrop, 100);
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function init() {
+            // Check for stored theme preference
+            const storedTheme = localStorage.getItem('missionControlTheme');
+            if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                appState.darkMode = true;
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-toggle').textContent = '☀️ Light';
+            }
+
+            // Check for stored view preference
+            const storedView = localStorage.getItem('missionControlView');
+            if (storedView === 'list') {
+                isListView = true;
+                const kanbanBoard = document.getElementById('kanban-board');
+                const listView = document.getElementById('list-view');
+                const viewIcon = document.getElementById('view-icon');
+                const viewLabel = document.getElementById('view-label');
+                kanbanBoard.style.display = 'none';
+                listView.style.display = 'block';
+                viewIcon.textContent = '📊';
+                viewLabel.textContent = 'Kanban View';
+            }
+
+            // Initialize data
+            initData();
+
+            // Render
+            renderActivityFeed();
+            renderAgents();
+            
+            if (isListView) {
+                renderListView();
+            } else {
+                renderKanban();
+                setTimeout(initDragAndDrop, 100);
+            }
+
+            // Initialize filters
+            initFilters();
+
+            // Start time updater
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            // Bind events
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('refresh-btn').addEventListener('click', refreshData);
+
+            // Auto-save periodically
+            setInterval(saveData, 30000);
+
+            console.log('🤖 Mission Control initialized');
+        }
+
+        // ========================================
+        // FILTER FUNCTIONS
+        // ========================================
+
+        let currentFilters = {
+            search: '',
+            agent: '',
+            priority: '',
+            status: ''
+        };
+
+        function initFilters() {
+            const searchInput = document.getElementById('filter-search');
+            const agentSelect = document.getElementById('filter-agent');
+            const prioritySelect = document.getElementById('filter-priority');
+            const statusSelect = document.getElementById('filter-status');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce((e) => {
+                    currentFilters.search = e.target.value.toLowerCase();
+                    applyFilters();
+                }, 300));
+            }
+
+            if (agentSelect) {
+                agentSelect.addEventListener('change', (e) => {
+                    currentFilters.agent = e.target.value;
+                    applyFilters();
+                });
+            }
+
+            if (prioritySelect) {
+                prioritySelect.addEventListener('change', (e) => {
+                    currentFilters.priority = e.target.value;
+                    applyFilters();
+                });
+            }
+
+            if (statusSelect) {
+                statusSelect.addEventListener('change', (e) => {
+                    currentFilters.status = e.target.value;
+                    applyFilters();
+                });
+            }
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function applyFilters() {
+            const taskCards = document.querySelectorAll('.task-card');
+            let visibleCount = 0;
+
+            taskCards.forEach(card => {
+                const taskId = card.querySelector('.task-id').textContent.toLowerCase();
+                const taskTitle = card.querySelector('.task-title').textContent.toLowerCase();
+                const assignee = card.querySelector('.task-assignee')?.textContent.toLowerCase() || '';
+                const priorityTag = card.querySelector('.task-tag');
+                const priority = priorityTag ? priorityTag.className.includes('high') ? 'high' : 
+                                 priorityTag.className.includes('medium') ? 'medium' : 'low' : '';
+                const columnStatus = card.closest('.kanban-column').dataset.status;
+
+                let matches = true;
+
+                // Search filter
+                if (currentFilters.search) {
+                    const searchText = currentFilters.search;
+                    matches = matches && (taskId.includes(searchText) || taskTitle.includes(searchText));
+                }
+
+                // Agent filter
+                if (currentFilters.agent) {
+                    matches = matches && assignee.includes(currentFilters.agent.toLowerCase());
+                }
+
+                // Priority filter
+                if (currentFilters.priority) {
+                    matches = matches && priority === currentFilters.priority;
+                }
+
+                // Status filter
+                if (currentFilters.status) {
+                    matches = matches && columnStatus === currentFilters.status;
+                }
+
+                card.style.display = matches ? 'block' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            // Update task count
+            const countEl = document.getElementById('task-count');
+            const totalTasks = Object.values(appState.tasks).flat().length;
+            if (visibleCount < totalTasks) {
+                countEl.textContent = `${visibleCount} of ${totalTasks} tasks`;
+            } else {
+                countEl.textContent = `${totalTasks} tasks total`;
+            }
+        }
+
+        function clearFilters() {
+            currentFilters = {
+                search: '',
+                agent: '',
+                priority: '',
+                status: ''
+            };
+
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-agent').value = '';
+            document.getElementById('filter-priority').value = '';
+            document.getElementById('filter-status').value = '';
+
+            applyFilters();
+        }
+
+        // ========================================
+        // DEADLINE FUNCTIONS
+        // ========================================
+
+        function getDeadlineClass(deadline) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const due = new Date(deadline);
+            due.setHours(0, 0, 0, 0);
+            
+            const diffTime = due - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return 'overdue';
+            if (diffDays <= 3) return 'due-soon';
+            return 'on-track';
+        }
+
+        function formatDeadline(deadline) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const due = new Date(deadline);
+            due.setHours(0, 0, 0, 0);
+            
+            const diffTime = due - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return `${Math.abs(diffDays)}d overdue`;
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Tomorrow';
+            if (diffDays <= 7) return `${diffDays} days`;
+            
+            return due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        // ========================================
+        // VIEW TOGGLE FUNCTIONS
+        // ========================================
+
+        let isListView = false;
+
+        function toggleView() {
+            isListView = !isListView;
+            
+            const kanbanBoard = document.getElementById('kanban-board');
+            const listView = document.getElementById('list-view');
+            const viewIcon = document.getElementById('view-icon');
+            const viewLabel = document.getElementById('view-label');
+            
+            if (isListView) {
+                kanbanBoard.style.display = 'none';
+                listView.style.display = 'block';
+                viewIcon.textContent = '📊';
+                viewLabel.textContent = 'Kanban View';
+                renderListView();
+            } else {
+                kanbanBoard.style.display = 'grid';
+                listView.style.display = 'none';
+                viewIcon.textContent = '☰';
+                viewLabel.textContent = 'List View';
+                renderKanban();
+                setTimeout(initDragAndDrop, 100);
+            }
+            
+            localStorage.setItem('missionControlView', isListView ? 'list' : 'kanban');
+        }
+
+        function renderListView() {
+            const tbody = document.getElementById('list-view-body');
+            const allTasks = Object.entries(appState.tasks).flatMap(([status, tasks]) => 
+                tasks.map(task => ({ ...task, status }))
+            );
+            
+            if (allTasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No tasks found</td></tr>';
+                return;
+            }
+            
+            const statusIcons = {
+                backlog: '📋',
+                inbox: '📥',
+                assigned: '📝',
+                'in-progress': '🔄',
+                review: '👀',
+                blocked: '🚫',
+                done: '✅'
+            };
+            
+            const priorityClasses = {
+                high: 'priority-high',
+                medium: 'priority-medium',
+                low: 'priority-low'
+            };
+            
+            tbody.innerHTML = allTasks.map((task, idx) => `
+                <tr class="fade-in" style="animation-delay: ${idx * 0.03}s">
+                    <td><code>${task.id}</code></td>
+                    <td><strong>${task.title}</strong></td>
+                    <td>
+                        <span class="status-badge ${task.status}">
+                            ${statusIcons[task.status]} ${task.status.replace('-', ' ')}
+                        </span>
+                    </td>
+                    <td>
+                        ${task.priority ? `<span class="task-tag ${priorityClasses[task.priority]}">${task.priority}</span>` : '-'}
+                    </td>
+                    <td>${task.assignee || 'Unassigned'}</td>
+                    <td>
+                        ${task.deadline ? `<span class="task-deadline ${getDeadlineClass(task.deadline)}">📅 ${formatDeadline(task.deadline)}</span>` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ========================================
+        // AGENT ADMIN MODULE
+        // ========================================
+
+        const AGENT_CONFIGS = {
+            'viernes': {
+                name: 'Viernes',
+                role: 'Squad Lead / Commercial Rep',
+                avatar: '🐙',
+                status: 'active',
+                soul: `/root/.openclaw/workspace/SOUL.md`,
+                identity: `/root/.openclaw/workspace/IDENTITY.md`,
+                user: `/root/.openclaw/workspace/USER.md`,
+                working: `/root/.openclaw/workspace/memory/WORKING.md`,
+                tools: ['File System', 'Shell', 'Web Browsing', 'Git', 'Browser Automation'],
+                skills: ['Mission Control', 'Agent Management', 'Task Delegation'],
+                model: 'kimi-code/kimi-for-coding',
+                workspace: '/root/.openclaw/workspace'
+            },
+            'jarvis': {
+                name: 'Jarvis',
+                role: 'Squad Lead',
+                avatar: '🎩',
+                status: 'configured',
+                soul: `/root/.openclaw/workspace/👤 Agents/jarvis/SOUL.md`,
+                working: `/root/.openclaw/workspace/👤 Agents/jarvis/WORKING.md`,
+                tools: ['File System', 'Shell', 'Web Browsing', 'sessions_send'],
+                skills: ['Coordination', 'Task Management', 'Team Leadership'],
+                model: 'kimi-code/kimi-for-coding',
+                workspace: '/root/.openclaw/workspace/👤 Agents/jarvis'
+            },
+            'shuri': {
+                name: 'Shuri',
+                role: 'Product Analyst',
+                avatar: '🔬',
+                status: 'configured',
+                soul: `/root/.openclaw/workspace/👤 Agents/shuri/SOUL.md`,
+                working: `/root/.openclaw/workspace/👤 Agents/shuri/WORKING.md`,
+                tools: ['File System', 'Web Browsing', 'Screenshot Tools'],
+                skills: ['Testing', 'UX Analysis', 'Competitive Analysis'],
+                model: 'kimi-code/kimi-for-coding',
+                workspace: '/root/.openclaw/workspace/👤 Agents/shuri'
+            },
+            'friday': {
+                name: 'Friday',
+                role: 'Developer',
+                avatar: '💻',
+                status: 'configured',
+                soul: `/root/.openclaw/workspace/👤 Agents/friday/SOUL.md`,
+                working: `/root/.openclaw/workspace/👤 Agents/friday/WORKING.md`,
+                tools: ['File System', 'Shell', 'Web Browsing', 'Code Editor'],
+                skills: ['Development', 'Testing', 'Documentation'],
+                model: 'kimi-code/kimi-for-coding',
+                workspace: '/root/.openclaw/workspace/👤 Agents/friday'
+            }
+        };
+
+        let currentAgent = 'viernes';
+        let currentTab = 'overview';
+
+        function showAgentAdmin() {
+            document.getElementById('task-board-section').style.display = 'none';
+            document.getElementById('agent-admin-section').style.display = 'block';
+            document.getElementById('nav-task-board').classList.remove('active');
+            document.getElementById('nav-agent-admin').classList.add('active');
+            renderAgentList();
+            renderAgentConfig();
+        }
+
+        function showTaskBoard() {
+            document.getElementById('task-board-section').style.display = 'block';
+            document.getElementById('agent-admin-section').style.display = 'none';
+            document.getElementById('nav-task-board').classList.add('active');
+            document.getElementById('nav-agent-admin').classList.remove('active');
+        }
+
+        function renderAgentList() {
+            const list = document.getElementById('agent-list-panel');
+            list.innerHTML = Object.entries(AGENT_CONFIGS).map(([id, agent]) => `
+                <div class="agent-list-item ${id === currentAgent ? 'active' : ''}" onclick="selectAgent('${id}')">
+                    <span class="agent-avatar-sm">${agent.avatar}</span>
+                    <div class="agent-list-info">
+                        <div class="agent-list-name">${agent.name}</div>
+                        <div class="agent-list-role">${agent.role}</div>
+                    </div>
+                    <span class="agent-status-dot ${agent.status}"></span>
+                </div>
+            `).join('');
+        }
+
+        function selectAgent(agentId) {
+            currentAgent = agentId;
+            currentTab = 'overview';
+            renderAgentList();
+            renderAgentConfig();
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            renderAgentConfig();
+        }
+
+        function renderAgentConfig() {
+            const container = document.getElementById('agent-config-panel');
+            const agent = AGENT_CONFIGS[currentAgent];
+            
+            let content = '';
+            
+            switch(currentTab) {
+                case 'overview':
+                    content = `
+                        <div class="config-section">
+                            <h3>📋 Overview</h3>
+                            <div class="config-grid">
+                                <div class="config-item">
+                                    <label>Name</label>
+                                    <value>${agent.name}</value>
+                                </div>
+                                <div class="config-item">
+                                    <label>Role</label>
+                                    <value>${agent.role}</value>
+                                </div>
+                                <div class="config-item">
+                                    <label>Status</label>
+                                    <value><span class="status-badge ${agent.status}">${agent.status}</span></value>
+                                </div>
+                                <div class="config-item">
+                                    <label>Model</label>
+                                    <value><code>${agent.model}</code></value>
+                                </div>
+                                <div class="config-item">
+                                    <label>Workspace</label>
+                                    <value><code>${agent.workspace}</code></value>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="config-section">
+                            <h3>🛠️ Tools</h3>
+                            <div class="tag-list">
+                                ${agent.tools.map(t => `<span class="config-tag">${t}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="config-section">
+                            <h3>🎯 Skills</h3>
+                            <div class="tag-list">
+                                ${agent.skills.map(s => `<span class="config-tag skill">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'soul':
+                    content = `
+                        <div class="config-section">
+                            <h3>👤 SOUL.md</h3>
+                            <div class="file-path">${agent.soul}</div>
+                            <pre class="code-block">Loading SOUL.md content...
+
+This would display the parsed SOUL.md content with:
+- Identity information
+- Personality traits
+- Boundaries and rules
+- Communication style</pre>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'working':
+                    content = `
+                        <div class="config-section">
+                            <h3>📝 WORKING.md</h3>
+                            <div class="file-path">${agent.working}</div>
+                            <pre class="code-block">## Current Task
+No active task.
+
+## Status
+🟢 Idle
+
+## Next Steps
+1. Check assigned tasks
+2. Review @mentions
+
+## Blocked By
+None</pre>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'identity':
+                    content = `
+                        <div class="config-section">
+                            <h3>🎭 Identity</h3>
+                            <div class="file-path">${agent.identity || 'Using default identity'}</div>
+                            <pre class="code-block"># IDENTITY.md - Who Am I?
+
+- **Name:** ${agent.name}
+- **Role:** ${agent.role}
+- **Avatar:** ${agent.avatar}</pre>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'raw':
+                    content = `
+                        <div class="config-section">
+                            <h3>⚙️ Raw Configuration</h3>
+                            <pre class="code-block language-json">${JSON.stringify(agent, null, 2)}</pre>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            container.innerHTML = `
+                <div class="agent-config-header">
+                    <div class="agent-config-title">
+                        <span class="agent-avatar-lg">${agent.avatar}</span>
+                        <div>
+                            <h2>${agent.name}</h2>
+                            <span class="agent-config-role">${agent.role}</span>
+                        </div>
+                    </div>
+                    <div class="agent-config-tabs">
+                        <button class="config-tab ${currentTab === 'overview' ? 'active' : ''}" onclick="switchTab('overview')">Overview</button>
+                        <button class="config-tab ${currentTab === 'soul' ? 'active' : ''}" onclick="switchTab('soul')">SOUL</button>
+                        <button class="config-tab ${currentTab === 'working' ? 'active' : ''}" onclick="switchTab('working')">Working</button>
+                        <button class="config-tab ${currentTab === 'identity' ? 'active' : ''}" onclick="switchTab('identity')">Identity</button>
+                        <button class="config-tab ${currentTab === 'raw' ? 'active' : ''}" onclick="switchTab('raw')">Raw</button>
+                    </div>
+                </div>
+                <div class="agent-config-content">
+                    ${content}
+                </div>
+            `;
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

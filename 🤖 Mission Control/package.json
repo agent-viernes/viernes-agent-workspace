@@ -1,0 +1,17 @@
+{
+  "name": "mission-control-dashboard",
+  "version": "1.0.0",
+  "description": "Mission Control Dashboard for Viernes AI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "basic-auth": "^2.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

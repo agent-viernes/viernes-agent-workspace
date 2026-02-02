@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "google-workspace-mcp": {
+      "version": "1.0.0",
+      "installedAt": 1769870996716
+    },
+    "imap-email": {
+      "version": "1.0.2",
+      "installedAt": 1769871420156
+    },
+    "obsidian": {
+      "version": "1.0.0",
+      "installedAt": 1769929663720
+    }
+  }
+}
