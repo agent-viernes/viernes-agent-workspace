@@ -18,6 +18,7 @@ Implementación de un equipo de agentes AI especializados usando OpenClaw (basad
 | **Pepper** | Email Marketing | `agent:email-marketing:main` | Drip sequences, lifecycle |
 | **Friday** | Developer | `agent:developer:main` | Code, testing, documentation |
 | **Wong** | Documentation | `agent:notion-agent:main` | Organización, wiki, SOPs |
+| **Natasha** | SDR | `agent:sdr:main` | Lead qualification, demo booking |
 
 ---
 
