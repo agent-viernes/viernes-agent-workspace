@@ -1,6 +1,6 @@
 # HEARTBEAT.md - Tareas Periódicas
 
-## Cada 15 minutos (Heartbeats)
+## Cada 30 minutos (Heartbeats)
 
 ### 1. Revisar Leads en Trello
 **Board:** "Administrativo"  
