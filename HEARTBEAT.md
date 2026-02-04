@@ -13,7 +13,12 @@
    curl -s "https://api.trello.com/1/lists/6980fb5211959d198d49792a/cards?key=$TRELLO_KEY&token=$TRELLO_TOKEN"
    ```
 2. Para cada lead NUEVO (ignorar cartas de plantilla como "Empieza a usar Trello"):
-   - Parsear nombre y empresa de la descripción o título
+   - Parsear nombre, empresa y **teléfono** de la descripción
+   - **AÑADIR A ALLOWLIST:** Agregar el número de teléfono al allowlist de WhatsApp para poder recibir sus mensajes:
+     ```bash
+     # Usar gateway config.patch para añadir el número al allowlist
+     openclaw gateway config.patch --raw '{"channels":{"whatsapp":{"allowFrom":["+573118360255","+573155252973","+573214516510","<NUEVO_NUMERO>"],"dmPolicy":"allowlist","groupPolicy":"open"}}}'
+     ```
    - Cargar template del Mensaje 1 desde `vault/👥 Clientes/Templates/lead-messages.md`
    - Reemplazar variables: `{{nombre}}`, `{{empresa}}`
    - Activar agente Natasha con los datos parseados y el mensaje ya preparado
